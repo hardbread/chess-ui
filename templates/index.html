@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html ng-app="chessUiApp">
+<head>
+    {% load staticfiles %}
+    <meta charset="utf-8">
+    <title ng-bind="title"></title>
+    <link rel="stylesheet" href="{% static "css/styles.css"%}">
+    <link rel="stylesheet" href="{% static "css/ui-grid.min.css"%}">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular-touch.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular-route.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular-animate.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.16/angular-resource.js"></script>
+    <script type="text/javascript" src="{% static "js/ui-grid.min.js"%}"></script>
+</head>
+<body>
+<!-- Start body-->
+<div id="main_container">
+    <main-menu></main-menu>
+    <div class="block-text" ng-view animate></div>
+</div>
+<!-- End body -->
+<script type="text/javascript" src="{% static "js/app.js"%}"></script>
+</body>
+</html>
