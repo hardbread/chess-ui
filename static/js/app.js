@@ -5,7 +5,7 @@ var app = angular.module('chessUiApp', [
         'ngTouch',
         'ui.grid'
     ]) //********** Config app **********//
-    .config(function ($routeProvider, $httpProvider, $logProvider) {
+    .config(['$routeProvider', '$httpProvider', '$logProvider', function ($routeProvider, $httpProvider, $logProvider) {
 
         //delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
@@ -17,21 +17,21 @@ var app = angular.module('chessUiApp', [
                 template: '<div id="grid1" ui-grid="gridOptions"></div>',
                 controller: 'tournamentCtrl'
             })
-            .when('/tournament/:tId', {
-                title: 'Tournament - Matches',
-                template: '<div id="grid1" ui-grid="gridOptions"></div>',
-                controller: 'tournamentCtrl'
-            })
-            .when('/matches', {
-                title: 'Tournament - Matches',
-                template: '<div id="grid1" ui-grid="gridOptions"></div>',
-                controller: 'matchCtrl'
-            })
+//            .when('/tournament/:tId', {
+//                title: 'Tournament - Matches',
+//                template: '<div id="grid1" ui-grid="gridOptions"></div>',
+//                controller: 'tournamentCtrl'
+//            })
+//            .when('/matches', {
+//                title: 'Tournament - Matches',
+//                template: '<div id="grid1" ui-grid="gridOptions"></div>',
+//                controller: 'matchCtrl'
+//            })
             .otherwise({
                 redirectTo: '/'
             });
-    }) // ************ Init app ***********//
-    .run(function ($rootScope) {
+    }]) // ************ Init app ***********//
+    .run(['$rootScope', function ($rootScope) {
         var apiPort = 8000;
         var domain = 'localhost';
         $rootScope.apiConf = {
@@ -53,36 +53,39 @@ var app = angular.module('chessUiApp', [
             }
         ];
 
-        $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
+        $rootScope.$on('$routeChangeSuccess', function (event, current) {
             // Change Title page on route
             $rootScope.title = current.$$route.title;
         });
 
-    });
+    }]);
 
 // ************************//
 
-app.factory('apiService', ['$rootScope', '$http', '$log', '$q', function ($rootScope, $http, $log, $q) {
+app.factory('apiHttpFactory', ['$rootScope', '$http', '$log', '$q', function ($rootScope, $http, $log, $q) {
     var method = {};
 
         method.get = function(url){
                         var deferred = $q.defer();
                         var path = $rootScope.apiConf.apiServer + url;
 
-                        $http.get(path, {cache: true})
-                        .then(function(data){
-                            $log.debug("API service request successfully: ", data.data);
-                            deferred.resolve(data);
-                        }, function(data){
-                            $log.debug("API service request error: ", data.data);
-                            deferred.reject(data);
-                        });
+                        $http.get(path)
+                            .success(function(data, status){
+                                if(status == 200){
+                                    $log.debug("API GET request successfully: ", data);
+                                    deferred.resolve(data);
+                                }
+                            })
+                            .error(function(data, status, headers, config) {
+                                $log.debug("API GET request error: ", data, status, headers, config);
+                                deferred.reject(data);
+                            });
                         return deferred.promise;
                      };
     return method;
 }]);
 
-app.controller('tournamentCtrl', ['$scope', '$log', 'apiService', function ($scope, $log, apiService) {
+app.controller('tournamentCtrl', ['$scope', '$log', 'apiHttpFactory', function ($scope, $log, apiHttpFactory) {
 
     $scope.tournamentModel = [];
 
@@ -105,11 +108,9 @@ app.controller('tournamentCtrl', ['$scope', '$log', 'apiService', function ($sco
      ]
     };
     // get model
-    apiService.get('/tournaments/').then(function(data){
-        if (data.status == 200){
-            $scope.tournamentModel = data.data.responses;
+    apiHttpFactory.get('/tournaments/').then(function(data){
+            $scope.tournamentModel = data.responses;
             $log.debug('tournamentCtrl: $scope.tournamentModel=',  $scope.tournamentModel);
-        }
     });
 
 }]);
@@ -129,7 +130,6 @@ app.directive('mainMenu', ['$rootScope', function ($rootScope) {
 app.directive('linkTo', ['$location', function ($location) {
         return {
             restrict: 'A',
-            scope: {},
             link: function(scope, element, attrs) {
                 attrs.$set('href', '#'+ ($location.path() != '/' ? $location.path(): '') + '/' + attrs.linkTo);
             }
